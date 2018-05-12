@@ -26,7 +26,7 @@ export  class App extends Component{
   }
 
   componentDidMount() {
-    this.getAgencies();
+    this.getAgencies2();
   }
   getAgencies =()=>{
     fetch('http://webservices.nextbus.com/service/publicJSONFeed?command=agencyList')
@@ -43,6 +43,15 @@ export  class App extends Component{
     console.error(error);
   });
 }
+getAgencies2 =()=>{
+  Meteor.call("findagencies",(err,agencies)=>{
+    let agenciesTemp = [];
+    for(let agency of agencies["agency"] ){
+      agenciesTemp.push(agency.tag)
+    }
+    this.setState({agencies:agenciesTemp});
+  });
+}
 
 
 handleSubmit = (e) => {
@@ -55,30 +64,24 @@ handleSubmit = (e) => {
 }
 handleAgChange=(agency) =>{
   this.setState({routes:[],sClasses:[],directions:[]})
-  fetch('http://webservices.nextbus.com/service/publicJSONFeed?command=routeList&a='+agency)
-  .then((response) => response.json())
-  .then((responseJson) => {
+  Meteor.call("findRoutesByAgency",{agency},function(err,responseJson){
 
-    if(responseJson["route"]){
-      let x = responseJson["route"].tag?[]:responseJson["route"];
-      if(x.length===0)x.push(responseJson["route"]);
-      this.setState({routes:x,agency:agency});
-    }
-    else{
-      this.setState({routes:[{tag:"No data provided"}],agency:agency});
+        if(responseJson["route"]){
+          let x = responseJson["route"].tag?[]:responseJson["route"];
+          if(x.length===0)x.push(responseJson["route"]);
+          this.setState({routes:x,agency:agency});
+        }
+        else{
+          this.setState({routes:[{tag:"No data provided"}],agency:agency});
 
-    }
-  })
-  .catch((error) => {
-    console.log(error);
-  });
+        }
+
+  }.bind(this))
 }
 handleRouteChange = (route)=>{
   if(route!=="No data provided"){
     this.setState({sClasses:[],directions:[]})
-    fetch('http://webservices.nextbus.com/service/publicJSONFeed?command=schedule&a='+this.state.agency+'&r='+route)
-    .then((response) => response.json())
-    .then((responseJson) => {
+    Meteor.call("findRoutesByAgencyAndRoute",{agency:this.state.agency,route},function(err,responseJson){
       if(responseJson["route"]){
         let x = responseJson["route"].serviceClass?[]:responseJson["route"];
         if(x.length===0)x.push(responseJson["route"]);
@@ -92,12 +95,8 @@ handleRouteChange = (route)=>{
       }
       else{
         this.setState({sClasses:["No data provided"],route:route});
-        //  this.setState({routes:[{tag:"No data provided"}],agency:agency});
       }
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+    }.bind(this))
   }
 }
 handleSClassChange = (sClass)=>{
