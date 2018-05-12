@@ -23,9 +23,9 @@ export   class Comments extends Component{
           </h1>
             {(Meteor.user())?
               (<div className = "comment-area">
-              <textarea ref = "comment" className="form-control" rows="5" id="comment" placeholder="Type your comment here..."></textarea>
+              <textarea id="teta" ref = "comment" className="form-control" rows="5" id="comment" placeholder="Type your comment here..."></textarea>
               <div className="button" style={{marginBottom:"20px"}}>
-                <button type="button" className="btn btn-success"  onClick={()=>{this.props.addComment(this.refs.comment.value)}}>Comment</button>
+                  <button type="button" className="btn btn-success"  onClick={()=>{let val = this.refs.comment.value; this.refs.comment.value = ""; this.props.addComment(val)}}>Comment</button>
               </div>
               <div>
               { this.props.graphs.map((d,i)=>{
