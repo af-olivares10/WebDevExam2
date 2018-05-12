@@ -5,6 +5,11 @@ import { DatePicker, Input,Form,  Button,Icon , Select} from 'antd';
 const { TextArea } = Input;
 const FormItem = Form.Item;
 import Graph from "./Graph";
+import Comments from "./Comments";
+import { Template } from 'meteor/templating';
+import { Blaze } from 'meteor/blaze';
+import ReactDOM from "react-dom";
+
 import 'antd/dist/antd.css';
 import * as d3 from "d3"
 export  class App extends Component{
@@ -21,11 +26,16 @@ export  class App extends Component{
       directions:[],
       direction:0,
       sClassesObj:[],
-      selected:0
+      selected:0,
+      chain:0,
+      comments:[]
     };
   }
 
   componentDidMount() {
+  // Use Meteor Blaze to render login buttons
+  this.view = Blaze.render(Template.loginButtons,
+    ReactDOM.findDOMNode(this.refs.container));
     this.getAgencies2();
   }
   getAgencies =()=>{
@@ -66,15 +76,15 @@ handleAgChange=(agency) =>{
   this.setState({routes:[],sClasses:[],directions:[]})
   Meteor.call("findRoutesByAgency",{agency},function(err,responseJson){
 
-        if(responseJson["route"]){
-          let x = responseJson["route"].tag?[]:responseJson["route"];
-          if(x.length===0)x.push(responseJson["route"]);
-          this.setState({routes:x,agency:agency});
-        }
-        else{
-          this.setState({routes:[{tag:"No data provided"}],agency:agency});
+    if(responseJson["route"]){
+      let x = responseJson["route"].tag?[]:responseJson["route"];
+      if(x.length===0)x.push(responseJson["route"]);
+      this.setState({routes:x,agency:agency});
+    }
+    else{
+      this.setState({routes:[{tag:"No data provided"}],agency:agency});
 
-        }
+    }
 
   }.bind(this))
 }
@@ -101,28 +111,38 @@ handleRouteChange = (route)=>{
 }
 handleSClassChange = (sClass)=>{
   if(sClass!=="No data provided"){
-  this.setState({directions:[]})
-  let sClasses = this.state.data.filter((d) => d.serviceClass===sClass);
-  let directions =[];
-  for(let r of sClasses){
-    if(directions.indexOf(r.direction)===-1){
-      directions.push(r.direction);
+    this.setState({directions:[]})
+    let sClasses = this.state.data.filter((d) => d.serviceClass===sClass);
+    let directions =[];
+    for(let r of sClasses){
+      if(directions.indexOf(r.direction)===-1){
+        directions.push(r.direction);
+      }
     }
+    this.setState({directions:directions,sClass:sClass,sClassesObj:sClasses});
   }
-  this.setState({directions:directions,sClass:sClass,sClassesObj:sClasses});
-}
 
 }
 handleDirectionChange = (direction)=>{
 
   let route = this.state.sClassesObj.filter((d) => d.direction===direction)[0];
-  this.setState({selected:route});
+  let chain = (this.state.agency + this.state.route + this.state.sClass + direction)
+  this.setState({selected:route,chain});
+
+
+}
+addComment=(comment)=>{
+  Meteor.call("comments.insert",{chain:this.state.chain,text:comment,username:Meteor.user().username});
 }
 render(){
   const { getFieldDecorator } = this.props.form;
 
   return(
     <div >
+      <div className = "container">
+        <span ref="container" />
+      </div>
+
       <div className = "container" style = {{marginTop:"70px",marginBottom:"70px"}} className = "form">
 
         <Form onSubmit={this.handleSubmit} >
@@ -205,18 +225,19 @@ render(){
             }
           </FormItem>
           {/* <FormItem style={{  marginBottom: "5px" }}>
-            <div style ={{  color: "red" }}></div>
-            <Button type="primary" htmlType="submit"><Icon type="right-circle-o" />GO!</Button>
-            <br></br>
-          </FormItem> */}
-        </Form>
+          <div style ={{  color: "red" }}></div>
+          <Button type="primary" htmlType="submit"><Icon type="right-circle-o" />GO!</Button>
+          <br></br>
+        </FormItem> */}
+      </Form>
 
-      </div>
-      <Graph selected= {this.state.selected}></Graph>
     </div>
-  )
+    <Graph selected= {this.state.selected}></Graph>
+    <Comments  chain = {this.state.chain} graphs = {this.props.graphs} addComment ={this.addComment} ></Comments>
+
+  </div>
+)
 }
 }
 const WrappedApp = Form.create()(App);
-
 export default WrappedApp;
