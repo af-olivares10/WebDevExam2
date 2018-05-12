@@ -41,7 +41,7 @@ And you are all set up! Access the app on http://localhost:3000/
 The tests will run and results will appear connecting to http://localhost:3100/
 
 ## License
-[MIT license](https://github.com/af-olivares10/Pump-It/blob/master/LICENSE)  
+[MIT license](https://github.com/af-olivares10/WebDevExam2/blob/master/LICENSE)  
 
 ## Authors
 * **Andrés Olivares** - [*Personal website*](https://af-olivares10.github.io/)
