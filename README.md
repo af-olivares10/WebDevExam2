@@ -32,13 +32,10 @@ App: https://webdevfinall.herokuapp.com/
   ```
 And you are all set up! Access the app on http://localhost:3000/
 
-## Running tests
+## Secret sauce
+ * Design
+ * Fully working
 
-* Download the repository and run on the main directory
-  ```
-  > meteor test --driver-package=cultofcoders:mocha --port 3100
-  ```
-The tests will run and results will appear connecting to http://localhost:3100/
 
 ## License
 [MIT license](https://github.com/af-olivares10/WebDevExam2/blob/master/LICENSE)  
